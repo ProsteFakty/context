@@ -56,17 +56,18 @@ flowchart LR
 
 ### Elementy
 
-| Element | Wybór | Dlaczego |
-|---|---|---|
-| Maszyna | **EC2 `t4g.medium`** (2 vCPU Graviton/ARM, 4 GB RAM), Ubuntu 24.04 arm64 | Najtańsza z 4 GB RAM. ARM jest tańszy od x86, a obrazy `postgres`, `qdrant` i Python/torch mają wersje arm64 |
-| Tryb kredytów CPU | **`standard`** (nie `unlimited`) | `t4g` domyślnie startuje w `unlimited`: przy długim obciążeniu CPU AWS dolicza opłaty. W `standard` maszyna co najwyżej zwolni, a rachunek się nie zmieni |
-| Region | `eu-central-1` (Frankfurt) | Najbliżej użytkowników w Polsce |
-| Dysk | **EBS gp3, 30 GB** | System + Docker + model (~2 GB) + bazy (MB) + swap 2 GB, z zapasem |
-| Adres | **Elastic IP** | Stały adres pod rekord A domeny; nie zmienia się po restarcie maszyny |
-| Firewall | Security group: 80, 443 z całego świata, 22 tylko z naszych IP | Postgres i Qdrant niewidoczne z zewnątrz |
-| Postgres | Kontener `postgres:17` | RDS `db.t4g.micro` to dodatkowy rachunek co miesiąc przy kilku MB danych |
-| Qdrant | Kontener `qdrant/qdrant:v1.19.1` | Zero kosztu, ta sama wersja co snapshot |
-| HTTPS | Caddy w compose, certyfikat Let's Encrypt | Darmowe. Application Load Balancer kosztowałby prawie tyle co sama maszyna |
-| Domena / DNS | Dowolny rejestrator, rekord A → Elastic IP | Route 53 niepotrzebny |
-| Backup | Cron: `db/dump.sh` → `aws s3 cp` do S3; dostęp przez **rolę IAM** maszyny | Kilka MB dziennie, grosze. Bez kluczy AWS na dysku. Snapshoty EBS niepotrzebne — dane i tak odtwarzamy z dumpa |
-| Ingest | **Na laptopie**, nie na serwerze | Ciężką pracę (Gemini + embeddingi całych ustaw) robimy lokalnie. Na serwer trafia gotowy `seed.sql` + snapshot (`db/restore.sh --postgres`) |
+| Element | Wybór |
+|---|---|
+| Maszyna | **EC2 `t4g.medium`** (2 vCPU Graviton/ARM, 4 GB RAM), Ubuntu 24.04 arm64 |
+| Tryb kredytów CPU | **`standard`** (nie `unlimited`) |
+| Region | `eu-central-1` (Frankfurt) |
+| Dysk | **EBS gp3, 30 GB** |
+| Adres | **Elastic IP** |
+| Firewall | Security group: 80, 443 z całego świata, 22 tylko z naszych IP |
+| Postgres | Kontener `postgres:17` |
+| Qdrant | Kontener `qdrant/qdrant:v1.19.1` |
+| HTTPS | Caddy w compose, certyfikat Let's Encrypt |
+| Domena / DNS | Dowolny rejestrator, rekord A → Elastic IP |
+| Backup | Cron: `db/dump.sh` → `aws s3 cp` do S3; dostęp przez **rolę IAM** maszyny |
+| Ingest | **Na laptopie**, nie na serwerze |
+
